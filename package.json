@@ -1,0 +1,23 @@
+{
+  "name": "jev-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Jev decide, el LLM razona: triage de Jira, pre-vuelo de código y router de modelos para revisar PRs. Sin dependencias: Node 22.18+.",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "batch": "node --env-file-if-exists=.env demo1-triage/batch.ts",
+    "triage": "node --env-file-if-exists=.env demo1-triage/triage.ts",
+    "review": "node --env-file-if-exists=.env demo3-router/review.ts",
+    "compare": "node demo3-router/compare.ts",
+    "reset": "node --env-file-if-exists=.env scripts/reset.ts",
+    "limpiar": "node --env-file-if-exists=.env scripts/clean.ts",
+    "import-prs": "node demo3-router/import-prs.mjs",
+    "test": "node --test tests/*.test.ts",
+    "seed": "node --env-file-if-exists=.env scripts/seed.ts",
+    "scan": "node --env-file-if-exists=.env demo2-pre-vuelo/scan.ts",
+    "costs": "node scripts/costs.ts"
+  }
+}

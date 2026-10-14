@@ -1,0 +1,806 @@
+{
+  "at": "2026-10-08T04:41:43.939Z",
+  "mode": "direct",
+  "ticket": "T03",
+  "ticketTitle": "Reembolso parcial se registra como total",
+  "files": [
+    "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+    "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts"
+  ],
+  "mock": false,
+  "totalMs": 42257,
+  "tokens": {
+    "input": 74272,
+    "output": 8665
+  },
+  "cost": 0.23519400000000007,
+  "findings": [
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "__joinerConfig",
+      "lines": 3,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1013,
+        "output_tokens": 12,
+        "ms": 3619
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "roundToCurrencyPrecision",
+      "lines": 18,
+      "flags": [
+        "oculta_errores"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: oculta_errores\n\n1) **oculta_errores**: el `catch { }` vacío deja `precision` en `undefined` y la función devuelve igualmente un valor \"correcto\". Lo grave es que `formatted.split(\".\")[1].length` lanza `TypeError` en casos válidos y no solo con monedas desconocidas. Pasa con monedas sin decimales (JPY, `\"¥0\"`) y con locales que usan coma (`\"0,11 €\"`). El catch lo oculta y se redondea a precisión completa en lugar de 0 o 2 decimales.\n\n2) **Bug probable**: los montos reembolsado y capturado quedan con distinta precisión. Las comparaciones \"reembolsado >= total\" o el cálculo del restante pueden dar resultados erróneos. Así un reembolso parcial puede marcarse como total, o al revés, según moneda y locale.\n\n3) **Refactor mínimo**:\n```ts\nconst precision = new Intl.NumberFormat(\"en-US\", {\n  style: \"currency\", currency: currencyCode,\n}).resolvedOptions().maximumFractionDigits\n```\nCapturar solo `RangeError` (moneda inválida) y propagarlo o registrarlo, no ignorarlo.",
+        "input_tokens": 1164,
+        "output_tokens": 977,
+        "ms": 11575
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "createPaymentCollections",
+      "lines": 15,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1192,
+        "output_tokens": 12,
+        "ms": 5770
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "createPaymentCollections_",
+      "lines": 15,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1173,
+        "output_tokens": 12,
+        "ms": 3793
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "updatePaymentCollections",
+      "lines": 43,
+      "flags": [
+        "logica_duplicada"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: logica_duplicada\n\n1) Confirmo `logica_duplicada`: el spread `...data` más el bloque condicional `data.currency_code ? { currency_code: normalizeCurrencyCode(...) } : {}` aparece idéntico en la rama `isString` y en el `map` de la rama `else`. No marco `muta_entrada` (se construyen objetos nuevos), `oculta_errores` ni `numero_magico`.\n\n2) Bug probable: al corregir el reembolso parcial, quien añada campos o normalizaciones (p. ej. montos) solo en una rama dejará comportamientos distintos entre actualizar por id y por selector. Además, `Array.isArray(data)` es incorrecto: `data` es un objeto, así que siempre devuelve `result[0]`, y con selector solo se devuelve el primer elemento, perdiendo el resto. Debería comprobar `isString(idOrSelector)` o `Array.isArray(result)`.\n\n3) Refactor mínimo: extraer `const buildUpdate = (id: string) => ({ id, ...data, ...(data.currency_code && { currency_code: normalizeCurrencyCode(data.currency_code) }) })`, usarlo en ambas ramas, y devolver `isString(idOrSelector) ? result[0] : result`.",
+        "input_tokens": 1443,
+        "output_tokens": 447,
+        "ms": 6491
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "updatePaymentCollections_",
+      "lines": 6,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1091,
+        "output_tokens": 12,
+        "ms": 3488
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "upsertPaymentCollections",
+      "lines": 10,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1179,
+        "output_tokens": 12,
+        "ms": 3035
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "upsertPaymentCollections_",
+      "lines": 43,
+      "flags": [
+        "logica_duplicada"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: logica_duplicada\n\n1) **logica_duplicada**: los bloques `forUpdate` y `forCreate` repiten el mismo `.filter(...).map(...)`. En ambos se hace el spread y se normaliza `currency_code` con el mismo ternario; solo cambia el predicado `!!collection.id` / `!collection.id`.\n\n2) **Bug posible**: la tarea toca reembolsos parciales y totales. Si el dev añade normalización o campos (por ejemplo, montos) en solo una de las ramas, create y update divergirán y un reembolso parcial podría quedar guardado como total según la ruta. Además, `promiseAll` ejecuta create y update en paralelo, lo que agrava la inconsistencia.\n\n3) **Refactor mínimo**: extraer un helper y particionar una sola vez.\n\n```ts\nconst normalize = <T extends { currency_code?: string }>(e: T) => ({\n  ...e,\n  ...(e.currency_code ? { currency_code: normalizeCurrencyCode(e.currency_code) } : {}),\n})\nconst forUpdate = input.filter((c): c is UpdatePaymentCollectionDTO => !!c.id).map(normalize)\nconst forCreate = input.filter((c): c is CreatePaymentCollectionDTO => !c.id).map(normalize)\n```",
+        "input_tokens": 1499,
+        "output_tokens": 458,
+        "ms": 5764
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "completePaymentCollections",
+      "lines": 22,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1263,
+        "output_tokens": 12,
+        "ms": 2981
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "createPaymentSession",
+      "lines": 55,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1562,
+        "output_tokens": 215,
+        "ms": 4532
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "createPaymentSession_",
+      "lines": 20,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1214,
+        "output_tokens": 12,
+        "ms": 3410
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "updatePaymentSession",
+      "lines": 35,
+      "flags": [
+        "logica_duplicada"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: logica_duplicada\n\n1) Confirmación: `normalizeCurrencyCode(data.currency_code)` se calcula dos veces, una para el proveedor y otra para `paymentSessionService_.update`. Además, `amount: data.amount` se repite en ambas llamadas con la misma forma. No veo las otras señales: la función orquesta un flujo corto, no captura errores, no muta `data` y no tiene números mágicos.\n\n2) Bug posible: al corregir el reembolso parcial, un desarrollador podría cambiar el monto o la moneda en una sola de las dos llamadas. El proveedor y la sesión local quedarían con importes distintos, y un reembolso parcial podría registrarse como total.\n\n3) Refactor mínimo: calcular una vez `const amount = data.amount` y `const currencyCode = normalizeCurrencyCode(data.currency_code)` antes de las llamadas, y reutilizarlos en ambos objetos.",
+        "input_tokens": 1395,
+        "output_tokens": 330,
+        "ms": 5213
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "deletePaymentSession",
+      "lines": 16,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1149,
+        "output_tokens": 12,
+        "ms": 3028
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "authorizePaymentSession",
+      "lines": 99,
+      "flags": [
+        "varias_responsabilidades"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: varias_responsabilidades\n\n1) **Varias responsabilidades:** `authorizePaymentSession` hace todo esto en un solo método:\n- recupera la sesión (`retrieve`);\n- decide la idempotencia (`session.payment && session.authorized_at`);\n- llama al proveedor (`authorizePayment`);\n- persiste estados de sesión en dos ramas (`update` en PENDING y en no autorizado);\n- crea el pago (`authorizePaymentSession_`);\n- compensa con `cancelPayment`;\n- sincroniza la colección (`maybeUpdatePaymentCollection_`).\n\n2) **Bug posible:** al corregir el reembolso parcial, el desarrollador podría tocar el manejo de `CAPTURED` (`status !== AUTHORIZED && status !== CAPTURED`) o los montos. Esa lógica está mezclada con la orquestación, así que un cambio podría afectar la compensación o el estado de la colección. Además, en el `catch`, `payment?.id` siempre es `undefined`, porque `payment` no se asignó. La `idempotency_key` de `cancelPayment` es entonces incorrecta.\n\n3) **Refactor mínimo:** extraer el `update` de sesión a un helper privado (`updateSessionStatus_`). Corregir la clave de idempotencia usando `session.id`. No tocar el resto dentro de esta tarea.",
+        "input_tokens": 1834,
+        "output_tokens": 1008,
+        "ms": 10182
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "authorizePaymentSession_",
+      "lines": 51,
+      "flags": [
+        "muta_entrada",
+        "varias_responsabilidades"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: muta_entrada, varias_responsabilidades\n\n1) **muta_entrada**: `status = PaymentSessionStatus.AUTHORIZED` reasigna el parámetro `status` (línea dentro del `if`). No muta el objeto, pero sí reescribe la entrada y usa `isCaptured` como flag paralelo. **varias_responsabilidades**: la función actualiza la sesión, crea el pago y dispara la captura, todo en un solo método.\n\n2) **Bug probable**: al capturar siempre se pasa `amount: session.amount`, es decir, el monto total de la sesión. Si el proveedor reporta una captura parcial, se registrará como total. Además, `is_captured: isCaptured` fuerza el estado capturado sin verificar el monto real.\n\n3) **Refactor mínimo**: no reasignes `status`; calcula `const sessionStatus = status === CAPTURED ? AUTHORIZED : status`. Obtén el monto capturado desde `data` o del proveedor y pásalo a `capturePayment` en lugar de `session.amount`. Extrae la captura a un helper.",
+        "input_tokens": 1461,
+        "output_tokens": 384,
+        "ms": 5547
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "updatePayment",
+      "lines": 9,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1121,
+        "output_tokens": 12,
+        "ms": 3155
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "capturePayment",
+      "lines": 3,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna\n\nNo puedo confirmar ninguna señal: el archivo solo contiene la firma de `capturePayment` (parámetros `data` y `sharedContext`), sin cuerpo. No hay líneas de lógica que revisar para responsabilidades, manejo de errores, mutación, números mágicos o duplicación.",
+        "input_tokens": 1023,
+        "output_tokens": 117,
+        "ms": 3808
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "capturePayment_",
+      "lines": 4,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1046,
+        "output_tokens": 12,
+        "ms": 2878
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "capturePaymentFromProvider_",
+      "lines": 7,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1078,
+        "output_tokens": 12,
+        "ms": 2883
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "refundPayment",
+      "lines": 3,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1022,
+        "output_tokens": 12,
+        "ms": 3032
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "refundPayment_",
+      "lines": 4,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1044,
+        "output_tokens": 12,
+        "ms": 3140
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "refundPaymentFromProvider_",
+      "lines": 4,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1057,
+        "output_tokens": 12,
+        "ms": 3009
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "cancelPayment",
+      "lines": 27,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1243,
+        "output_tokens": 12,
+        "ms": 3009
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "maybeUpdatePaymentCollection_",
+      "lines": 96,
+      "flags": [
+        "varias_responsabilidades",
+        "logica_duplicada"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: varias_responsabilidades, logica_duplicada\n\n1) **varias_responsabilidades**: la función carga la colección (`retrieve` con `refresh`), calcula tres totales (autorizado, capturado, reembolsado), deduce el estado y persiste con `update`. **logica_duplicada**: los bucles de `captures` y `refunds` son la misma suma, y el `roundToCurrencyPrecision(...)` con `paymentCollection.amount` se repite en el bloque de `AUTHORIZED` y en el de `COMPLETED`.\n\n2) **Bug probable**: `refundedAmount` se suma, pero nunca se compara con `capturedAmount`. Un reembolso parcial no altera `status`, y `completed_at` queda `COMPLETED` porque solo depende de capturas. Al arreglarlo, puedes duplicar la lógica de redondeo y errar al comparar reembolso total contra parcial.\n\n3) **Refactor mínimo**: extrae `sumAmounts(items)` y `isAtLeast(a, b, currency)`. Después añade una rama explícita: si `refunded > 0` y es menor que `captured`, usar un estado de reembolso parcial; si es igual, uno total.",
+        "input_tokens": 2151,
+        "output_tokens": 421,
+        "ms": 5858
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "listPaymentProviders",
+      "lines": 2,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1011,
+        "output_tokens": 12,
+        "ms": 2803
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "listAndCountPaymentProviders",
+      "lines": 2,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1015,
+        "output_tokens": 12,
+        "ms": 2893
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "createAccountHolder",
+      "lines": 37,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1400,
+        "output_tokens": 12,
+        "ms": 3452
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "updateAccountHolder",
+      "lines": 37,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1408,
+        "output_tokens": 12,
+        "ms": 3690
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "deleteAccountHolder",
+      "lines": 19,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1183,
+        "output_tokens": 12,
+        "ms": 3270
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "listPaymentMethods",
+      "lines": 3,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1033,
+        "output_tokens": 12,
+        "ms": 3449
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "listAndCountPaymentMethods",
+      "lines": 3,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1037,
+        "output_tokens": 12,
+        "ms": 3295
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "createPaymentMethods",
+      "lines": 23,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1268,
+        "output_tokens": 12,
+        "ms": 3150
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "deletePaymentMethods",
+      "lines": 19,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1183,
+        "output_tokens": 12,
+        "ms": 2855
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/payment/src/services/payment-module.ts",
+      "function": "getWebhookActionAndData",
+      "lines": 13,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1142,
+        "output_tokens": 12,
+        "ms": 3087
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "validateOptions",
+      "lines": 15,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1275,
+        "output_tokens": 12,
+        "ms": 3154
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "normalizePaymentIntentParameters",
+      "lines": 53,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1767,
+        "output_tokens": 12,
+        "ms": 3046
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "handleStripeError",
+      "lines": 46,
+      "flags": [
+        "oculta_errores",
+        "logica_duplicada"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: oculta_errores, logica_duplicada\n\n1) **oculta_errores**: en `StripeCardError` devuelve `{retry: false, data: stripeError.payment_intent}` y en `StripeAPIError` devuelve `{retry:false, data:{indeterminate_due_to...}}`. Ambos convierten un fallo en un resultado \"normal\" sin lanzar error, así el llamador puede tratarlo como éxito.\n**logica_duplicada**: el `throw this.buildError(\"An error occurred in InitiatePayment...\", error)` aparece idéntico en el `else` de `StripeCardError` y en `default`.\n\n2) **Bug**: al arreglar el reembolso parcial, si esta función se reutiliza en refund/capture, un fallo de Stripe devuelve `data` con un payment_intent (cuyo `amount_received`/estado parece completo) y se registra como reembolso total. El mensaje \"InitiatePayment\" también es engañoso en reembolsos.\n\n3) **Refactor mínimo**: extraer `private throwInitiateError(error)` para el throw duplicado, y marcar explícitamente el resultado de error (p. ej. `status: \"error\"` o `failed: true`) en los retornos para que el llamador no lo confunda con un éxito. No reutilizar esta función para reembolsos sin parametrizar el mensaje.",
+        "input_tokens": 1507,
+        "output_tokens": 462,
+        "ms": 6739
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "executeWithRetry",
+      "lines": 37,
+      "flags": [
+        "oculta_errores"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: oculta_errores\n\n1) **oculta_errores**: en `if (!handledError.retry) { return handledError.data }` el error de Stripe no se lanza. Se devuelve como valor normal, y el tipo de retorno `Promise<T | StripeErrorData>` mezcla éxito y fallo. Un llamador que haga `await executeWithRetry(() => stripe.refunds.create(...))` recibe un objeto de error como si fuera el reembolso.\n\n2) **Bug probable**: al arreglar \"reembolso parcial se registra como total\", el código que registra el reembolso puede tomar ese `StripeErrorData` como resultado válido. Un reembolso parcial rechazado (por ejemplo, un monto mayor al disponible) acabaría guardado con el monto total o un estado incorrecto. Además, el mensaje final dice \"InitiatePayment... creation of stripe payment intent\" aunque la operación sea un reembolso, lo que despista al depurar.\n\n3) **Refactor mínimo**: lanzar `this.buildError(...)` también cuando `!retry`, o devolver un resultado discriminado (`{ok:true,data}` / `{ok:false,error}`) que el llamador deba revisar. Además, recibir el mensaje de contexto como parámetro.",
+        "input_tokens": 1374,
+        "output_tokens": 786,
+        "ms": 8924
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "getPaymentStatus",
+      "lines": 18,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1208,
+        "output_tokens": 12,
+        "ms": 3147
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "initiatePayment",
+      "lines": 36,
+      "flags": [
+        "muta_entrada"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: muta_entrada\n\n1) `intentRequest.customer = context?.account_holder?.data?.id as string | undefined` muta el objeto `intentRequest` ya construido. Es un objeto local, no un parámetro de entrada, así que no cumple `muta_entrada` en sentido estricto. Tampoco hay captura de errores que devuelva éxito, ni números mágicos, ni lógica duplicada, ni varias responsabilidades claras. Corrijo la marca: no aplica ninguna.\n\nMARCAS: ninguna",
+        "input_tokens": 1456,
+        "output_tokens": 187,
+        "ms": 4133
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "authorizePayment",
+      "lines": 5,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1052,
+        "output_tokens": 12,
+        "ms": 3254
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "cancelPayment",
+      "lines": 23,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1230,
+        "output_tokens": 12,
+        "ms": 2947
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "capturePayment",
+      "lines": 21,
+      "flags": [
+        "oculta_errores"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: oculta_errores\n\n1) **oculta_errores**: en el `catch`, cuando `error.code === PAYMENT_INTENT_UNEXPECTED_STATE` y `error.payment_intent?.status === SUCCEEDED`, hace `return { data: error.payment_intent }` y trata el error como éxito. No compara el monto capturado con el solicitado; el resto sí se relanza con `buildError`.\n\n2) **Bug en la tarea**: si se pidió un reembolso o captura parcial y el intent ya estaba `succeeded` (por captura total previa), la función devuelve éxito con el intent completo. Eso registra un parcial como total, porque `amount_received` no coincide con lo pedido y nadie lo detecta. Además, `data?.id` puede ser `undefined` y se castea sin validar.\n\n3) **Refactor mínimo**: en la rama idempotente, comparar `error.payment_intent.amount_received` con el monto esperado (del input). Si difiere, relanzar con `buildError`. Validar `id` al inicio y lanzar si falta.",
+        "input_tokens": 1258,
+        "output_tokens": 368,
+        "ms": 5773
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "deletePayment",
+      "lines": 3,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1041,
+        "output_tokens": 12,
+        "ms": 3139
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "refundPayment",
+      "lines": 32,
+      "flags": [
+        "oculta_errores"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: oculta_errores\n\n1) **oculta_errores**: en el `catch`, si `e.code === ErrorCodes.CHARGE_ALREADY_REFUNDED` no se relanza nada y la función llega a `return { data }` como si fuera éxito. Con reembolsos parciales, un segundo reembolso parcial sobre un cargo ya reembolsado (parcial o totalmente) se ignora en silencio.\n\n2) **Bug probable**: al corregir \"parcial registrado como total\", el sistema puede seguir devolviendo éxito sin que Stripe haya creado el reembolso parcial. Medusa lo registrará como hecho y el saldo quedará inconsistente. Además, `e.code` se lee sin comprobar que `e` tenga esa propiedad.\n\n3) **Refactor mínimo**: en el `catch`, para `CHARGE_ALREADY_REFUNDED`, consultar `stripe_.refunds.list({ payment_intent: id })` y verificar que el total reembolsado cubre `amount`. Si no lo cubre, lanzar `buildError`. Si lo cubre, devolver éxito de forma explícita, con un comentario o log que lo documente.",
+        "input_tokens": 1299,
+        "output_tokens": 408,
+        "ms": 5714
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "retrievePayment",
+      "lines": 14,
+      "flags": [
+        "muta_entrada"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: muta_entrada\n\n1) `intent.amount = getAmountFromSmallestUnit(intent.amount, intent.currency)` muta el objeto `intent` devuelto por Stripe, sobrescribiendo `amount` con el valor convertido. No es un parámetro de entrada de la función, pero sí un objeto externo cuyo estado se altera y se devuelve mezclado con datos originales. El `catch` relanza el error, así que no oculta errores.\n\n2) Bug probable: `retrievePayment` devuelve `amount` ya convertido a unidad mayor, mientras otros campos siguen en la unidad mínima (`amount_received`, `amount_capturable`, `latest_charge.amount_refunded`). Al registrar un reembolso parcial, el código que compara `amount` con lo reembolsado mezcla unidades y puede concluir que el reembolso es total, o al revés.\n\n3) Refactor mínimo: no mutar, y devolver una copia con el valor convertido explícito:\n\n```ts\nconst data = {\n  ...intent,\n  amount: getAmountFromSmallestUnit(intent.amount, intent.currency),\n}\nreturn { data: data as unknown as Record<string, unknown> }\n```\n\nConvertir también `amount_received` y `amount_capturable`, o documentar que no se convierten.",
+        "input_tokens": 1172,
+        "output_tokens": 446,
+        "ms": 5767
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "updatePayment",
+      "lines": 33,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1366,
+        "output_tokens": 222,
+        "ms": 4691
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "createAccountHolder",
+      "lines": 56,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1556,
+        "output_tokens": 12,
+        "ms": 4964
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "updateAccountHolder",
+      "lines": 59,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1590,
+        "output_tokens": 12,
+        "ms": 3435
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "deleteAccountHolder",
+      "lines": 19,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1209,
+        "output_tokens": 12,
+        "ms": 3333
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "listPaymentMethods",
+      "lines": 22,
+      "flags": [
+        "numero_magico"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: numero_magico\n\n1) Confirmación: `{ limit: 100 }` es un número mágico de negocio. Hay un comentario que lo justifica, pero no es una constante con nombre. El resto no aplica: la función hace una sola cosa, no captura errores, no muta `context` y no duplica lógica.\n\n2) Bug posible: la tarea (reembolso parcial registrado como total) no toca esta función, así que el riesgo es bajo. Si el desarrollador copia ese `100` en otro sitio, como en el listado de reembolsos o pagos, los límites pueden divergir. Con más de 100 métodos se truncaría el resultado en silencio, sin paginar.\n\n3) Refactor mínimo: extraer `const MAX_PAYMENT_METHODS_LIMIT = 100` a nivel de módulo y usarlo en `{ limit: MAX_PAYMENT_METHODS_LIMIT }`. No hace falta tocar esta función para la tarea.",
+        "input_tokens": 1261,
+        "output_tokens": 337,
+        "ms": 5325
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "savePaymentMethod",
+      "lines": 27,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1241,
+        "output_tokens": 12,
+        "ms": 3093
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "deletePaymentMethod",
+      "lines": 19,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1189,
+        "output_tokens": 12,
+        "ms": 3345
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "getStatus",
+      "lines": 39,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1568,
+        "output_tokens": 217,
+        "ms": 4374
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "getWebhookActionAndData",
+      "lines": 98,
+      "flags": [
+        "logica_duplicada"
+      ],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: logica_duplicada\n\n1) Lógica duplicada: el bloque `return { action: ..., data: { session_id: intent.metadata.session_id, amount: getAmountFromSmallestUnit(..., currency) } }` se repite en casi todos los `case` (canceled, payment_failed, requires_action, amount_capturable_updated, partially_funded, succeeded). Solo varían la acción y el campo de monto (`intent.amount`, `amount_capturable`, `amount_received`).\n\n2) Bug posible: no hay case para `charge.refunded` ni para reembolsos. Al arreglar el reembolso parcial, quien añada el caso copiará el patrón y probablemente usará `intent.amount` (total) en vez del monto reembolsado, registrándolo como total. Con tanta repetición, es fácil elegir el campo equivocado en un solo case.\n\n3) Refactor mínimo: extraer un helper local `build(action, rawAmount)` que devuelva `{ action, data: { session_id, amount: getAmountFromSmallestUnit(rawAmount, currency) } }`, y usarlo en cada case. Así el monto de cada evento queda explícito en una sola línea.",
+        "input_tokens": 2224,
+        "output_tokens": 407,
+        "ms": 5835
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "isAsyncPaymentMethod",
+      "lines": 6,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1075,
+        "output_tokens": 12,
+        "ms": 3047
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "constructWebhookEvent",
+      "lines": 13,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1150,
+        "output_tokens": 12,
+        "ms": 3156
+      }
+    },
+    {
+      "file": "../medusa-fork/packages/modules/providers/payment-stripe/src/core/stripe-base.ts",
+      "function": "buildError",
+      "lines": 10,
+      "flags": [],
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "MARCAS: ninguna",
+        "input_tokens": 1107,
+        "output_tokens": 12,
+        "ms": 3439
+      }
+    }
+  ]
+}

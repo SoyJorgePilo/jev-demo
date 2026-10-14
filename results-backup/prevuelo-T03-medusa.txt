@@ -1,0 +1,88 @@
+
+> jev-dev-demo@0.1.0 scan
+> node --env-file-if-exists=.env code-health/scan.ts --ticket=T03 --explain
+
+
+Pre-vuelo para T03 "Reembolso parcial se registra como total" · 2 archivos · jev real · llm real
+
+58 funciones en 2 archivos
+┌──────────────────────────────────────────────────────────┬──────────────────────────────────┬────────┬───────────────────┬──────┬─────┐
+│ Archivo                                                  │ Función                          │ Líneas │ Lo que marcó Jev  │ Sev. │  ms │
+├──────────────────────────────────────────────────────────┼──────────────────────────────────┼────────┼───────────────────┼──────┼─────┤
+│ modules/payment/src/services/payment-module.ts           │ completePaymentCollections       │     22 │ limpia            │  2.3 │ 431 │
+│ modules/payment/src/services/payment-module.ts           │ roundToCurrencyPrecision         │     18 │ oculta_errores 81% │  2.2 │ 529 │
+│ modules/payment/src/services/payment-module.ts           │ updatePaymentCollections         │     43 │ limpia            │  2.0 │ 758 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ initiatePayment                  │     36 │ limpia            │  1.9 │ 481 │
+│ modules/payment/src/services/payment-module.ts           │ cancelPayment                    │     27 │ limpia            │  1.8 │ 459 │
+│ modules/payment/src/services/payment-module.ts           │ createAccountHolder              │     37 │ limpia            │  1.7 │ 438 │
+│ modules/payment/src/services/payment-module.ts           │ deleteAccountHolder              │     19 │ limpia            │  1.7 │ 775 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ refundPayment                    │     32 │ limpia            │  1.7 │ 532 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ cancelPayment                    │     23 │ limpia            │  1.7 │ 489 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ updatePayment                    │     33 │ limpia            │  1.6 │ 504 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ normalizePaymentIntentParameters │     53 │ limpia            │  1.6 │ 463 │
+│ modules/payment/src/services/payment-module.ts           │ authorizePaymentSession          │     99 │ limpia            │  1.5 │ 410 │
+│ modules/payment/src/services/payment-module.ts           │ createPaymentSession             │     55 │ limpia            │  1.5 │ 497 │
+│ modules/payment/src/services/payment-module.ts           │ authorizePaymentSession_         │     51 │ limpia            │  1.5 │ 570 │
+│ modules/payment/src/services/payment-module.ts           │ deletePaymentSession             │     16 │ limpia            │  1.5 │ 431 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ updateAccountHolder              │     59 │ limpia            │  1.4 │ 503 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ executeWithRetry                 │     37 │ limpia            │  1.4 │ 491 │
+│ modules/payment/src/services/payment-module.ts           │ maybeUpdatePaymentCollection_    │     96 │ limpia            │  1.3 │ 458 │
+│ modules/payment/src/services/payment-module.ts           │ updatePaymentSession             │     35 │ limpia            │  1.3 │ 521 │
+│ modules/payment/src/services/payment-module.ts           │ createPaymentMethods             │     23 │ limpia            │  1.3 │ 523 │
+│ modules/payment/src/services/payment-module.ts           │ updateAccountHolder              │     37 │ limpia            │  1.3 │ 530 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ listPaymentMethods               │     22 │ limpia            │  1.2 │ 485 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ handleStripeError                │     46 │ limpia            │  1.1 │ 463 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ getWebhookActionAndData          │     98 │ limpia            │  1.1 │ 509 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ retrievePayment                  │     14 │ limpia            │  1.1 │ 497 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ createAccountHolder              │     56 │ limpia            │  1.1 │ 503 │
+│ modules/payment/src/services/payment-module.ts           │ upsertPaymentCollections_        │     43 │ limpia            │  1.0 │ 434 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ getStatus                        │     39 │ limpia            │  1.0 │ 518 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ capturePayment                   │     21 │ limpia            │  0.9 │ 454 │
+│ modules/payment/src/services/payment-module.ts           │ createPaymentCollections_        │     15 │ limpia            │  0.9 │ 431 │
+│ modules/payment/src/services/payment-module.ts           │ getWebhookActionAndData          │     13 │ limpia            │  0.9 │ 464 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ deleteAccountHolder              │     19 │ limpia            │  0.9 │ 547 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ authorizePayment                 │      5 │ limpia            │  0.9 │ 441 │
+│ modules/payment/src/services/payment-module.ts           │ upsertPaymentCollections         │     10 │ limpia            │  0.9 │ 429 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ getPaymentStatus                 │     18 │ limpia            │  0.9 │ 536 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ savePaymentMethod                │     27 │ limpia            │  0.8 │ 519 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ buildError                       │     10 │ limpia            │  0.8 │ 539 │
+│ modules/payment/src/services/payment-module.ts           │ deletePaymentMethods             │     19 │ limpia            │  0.7 │ 480 │
+│ modules/payment/src/services/payment-module.ts           │ capturePaymentFromProvider_      │      7 │ limpia            │  0.6 │ 442 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ deletePayment                    │      3 │ limpia            │  0.6 │ 479 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ deletePaymentMethod              │     19 │ limpia            │  0.6 │ 539 │
+│ modules/payment/src/services/payment-module.ts           │ createPaymentCollections         │     15 │ limpia            │  0.6 │ 417 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ validateOptions                  │     15 │ limpia            │  0.6 │ 493 │
+│ modules/payment/src/services/payment-module.ts           │ createPaymentSession_            │     20 │ limpia            │  0.5 │ 426 │
+│ modules/payment/src/services/payment-module.ts           │ updatePayment                    │      9 │ limpia            │  0.5 │ 579 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ constructWebhookEvent            │     13 │ limpia            │  0.4 │ 731 │
+│ modules/payment/src/services/payment-module.ts           │ capturePayment                   │      3 │ limpia            │  0.3 │ 407 │
+│ modules/payment/src/services/payment-module.ts           │ refundPaymentFromProvider_       │      4 │ limpia            │  0.3 │ 456 │
+│ modules/providers/payment-stripe/src/core/stripe-base.ts │ isAsyncPaymentMethod             │      6 │ limpia            │  0.3 │ 504 │
+│ modules/payment/src/services/payment-module.ts           │ refundPayment                    │      3 │ limpia            │  0.3 │ 465 │
+│ modules/payment/src/services/payment-module.ts           │ refundPayment_                   │      4 │ limpia            │  0.3 │ 471 │
+│ modules/payment/src/services/payment-module.ts           │ listAndCountPaymentMethods       │      3 │ limpia            │  0.3 │ 743 │
+│ modules/payment/src/services/payment-module.ts           │ capturePayment_                  │      4 │ limpia            │  0.3 │ 437 │
+│ modules/payment/src/services/payment-module.ts           │ listAndCountPaymentProviders     │      2 │ limpia            │  0.3 │ 494 │
+│ modules/payment/src/services/payment-module.ts           │ listPaymentMethods               │      3 │ limpia            │  0.2 │ 460 │
+│ modules/payment/src/services/payment-module.ts           │ updatePaymentCollections_        │      6 │ limpia            │  0.2 │ 548 │
+│ modules/payment/src/services/payment-module.ts           │ listPaymentProviders             │      2 │ limpia            │  0.1 │ 468 │
+│ modules/payment/src/services/payment-module.ts           │ __joinerConfig                   │      3 │ limpia            │  0.1 │ 609 │
+└──────────────────────────────────────────────────────────┴──────────────────────────────────┴────────┴───────────────────┴──────┴─────┘
+
+Jev  58 funciones · 805 ms total · 82,113 tokens · $0.0034
+      1 marcadas · 57 limpias → solo las marcadas van al LLM
+
+Claude explica 1 funciones marcadas (las limpias no gastan tokens)
+
+■ roundToCurrencyPrecision (modules/payment/src/services/payment-module.ts) claude-sonnet-5-5 · 1033 in / 434 out
+  1) **Señal "captura errores y devuelve éxito": confirmada parcialmente.** El `catch {}` (línea del `catch`) oculta cualquier error de `Intl.NumberFormat`, y `precision` queda `undefined`. Pero `formatted.split(".")[1].length` también cae ahí: en monedas sin decimales (JPY) `[1]` es `undefined` y lanza TypeError, que se silencia, así que se trata como "moneda desconocida". Además, `undefined` como locale hace el separador dependiente del entorno (en `es-ES` es `,`).
+  
+  2) **Bug en la tarea:** `MathBN.convert(amount, undefined)` no redondea, así que un reembolso parcial con muchos decimales o en JPY conserva precisión falsa. Al compararlo con el monto capturado, puede parecer igual al total (o no coincidir), y registrarse como total.
+  
+  3) **Refactor mínimo:**
+  - `getCurrencyPrecision(currencyCode): number | undefined` usando `resolvedOptions().maximumFractionDigits`, con locale fijo `"en-US"`.
+  - Capturar solo `RangeError` (código inválido) y relanzar el resto.
+  - `roundToCurrencyPrecision` llama a esa función.
+
+LLM: 1,033 in / 434 out tokens en 1 llamadas; 57 funciones no costaron nada.
+→ results/code-health.json

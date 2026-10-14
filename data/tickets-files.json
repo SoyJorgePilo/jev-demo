@@ -1,0 +1,4 @@
+{
+  "_nota": "Qué archivos hay que tocar para cada ticket. En un repo real esto lo infiere Claude Code o un índice; aquí es explícito para la demo. 'medusa:' se resuelve contra MEDUSA_PATH (por defecto ../medusa-fork, el clon de LIDR-academy/medusa).",
+  "T03": ["medusa:packages/modules/payment/src/services/payment-module.ts", "medusa:packages/modules/providers/payment-stripe/src/core/stripe-base.ts"]
+}

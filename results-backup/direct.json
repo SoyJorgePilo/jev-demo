@@ -1,0 +1,410 @@
+{
+  "at": "2026-10-08T03:11:23.908Z",
+  "mode": "direct",
+  "data": "data/prs-fork.json",
+  "repo": "LIDR-academy/medusa",
+  "mock": false,
+  "totalMs": 38014,
+  "results": [
+    {
+      "pr": {
+        "id": "PR-20",
+        "number": 20,
+        "url": "https://github.com/LIDR-academy/medusa/pull/20",
+        "title": "i18n complete the th dashboard locale",
+        "additions": 9,
+        "deletions": 4
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "1) **Riesgo principal:** Bajo. Son solo cadenas de traducción; el riesgo es un JSON inválido (comas) o inconsistencias de pluralización que muestren texto incorrecto en la UI.\n\n2) **Observaciones:**\n- `th.json` (~línea 2843): `\"successToast_one\"` se añade tras `}` con coma, pero hay que verificar que no rompa el orden/estructura del bloque ni duplique una clave `successToast_other` ya existente.\n- `th.json` (~línea 2850): `\"description_one\"` termina con coma final en el diff recortado; si es la última clave del objeto, el JSON quedaría inválido. Confirmar en el archivo completo.\n- `th.json`: el tailing \"ไม่สามารถย้อนกลับได้\" en `description_one` difiere de \"ไม่สามารถยกเลิกได้\" en `description_other`. Conviene unificar terminología. Además, el tailing en tailandés no distingue plural, por lo que `_one` y `_other` suelen ser redundantes; verificar que el i18n del proyecto los requiera.\n\n3) **Veredicto:** Aprobar con cambios. Validar el JSON (lint/parse en CI), unificar la redacción entre `_one` y `_other`, y comprobar claves duplicadas. Nota: el PR está marcado como demo, no mergear.",
+        "input_tokens": 1419,
+        "output_tokens": 467,
+        "ms": 7780
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-19",
+        "number": 19,
+        "url": "https://github.com/LIDR-academy/medusa/pull/19",
+        "title": "chore: drop Node.js 20 support and require Node.js v22.15.0 or later",
+        "additions": 229,
+        "deletions": 85
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Cambio breaking para usuarios en Node 20 (EOL). Se sube el mínimo a 22.15.0 en ~78 archivos; el riesgo es que alguna configuración (CI, Dockerfiles, `engines`, mensajes de error) quede inconsistente con el nuevo mínimo.\n\n**2) Observaciones:**\n- `.github/actions/setup-server/action.yml`: el default pasa a `\"22\"`, que resuelve a la última 22.x y no fija 22.15.0. Es válido, pero conviene probar también contra el mínimo exacto para detectar regresiones.\n- `packages/cli/create-medusa-app/src/utils/node-version.ts`: `getNodeVersion()` cambia de retornar `number` a `string`. Hay que verificar que no queden otros consumidores que comparen con número (por ejemplo `project-creator-factory.ts`, `medusa-cli/src/commands/new.ts`). Además, la lógica está duplicada con `packages/core/utils/.../get-node-version.ts`; convendría unificarla.\n- `.changeset/drop-node-20-support.md`: usa `minor` para un cambio breaking. Si el proyecto sigue pre-1.0 o su política lo permite está bien; si no, debería ser `major`.\n\n**3) Veredicto:** aprobar con cambios (el diff está recortado, así que mi revisión es parcial).",
+        "input_tokens": 2417,
+        "output_tokens": 489,
+        "ms": 10447
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-18",
+        "number": 18,
+        "url": "https://github.com/LIDR-academy/medusa/pull/18",
+        "title": "feat(dashboard): add refund reason selector to balance settlement form",
+        "additions": 42,
+        "deletions": 0
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "1) **Riesgo principal:** Bajo. El diff recortado no muestra el `Form.Item` completo, así que no puedo confirmar que el selector esté bien conectado (opciones, valor, `onChange`). Un selector mal enlazado enviaría `refund_reason_id` vacío o inválido al backend.\n\n2) **Observaciones:**\n- `order-balance-settlement-form.tsx`: `data.refund!.refund_reason_id` usa el operador `!`. Si `refund` es undefined (otros métodos de liquidación), lanzaría un error. Conviene usar `data.refund?.refund_reason_id`.\n- `order-balance-settlement-form.tsx`: `useRefundReasons()` no gestiona `isLoading`. Mientras carga, el selector aparece vacío; conviene deshabilitarlo o mostrar un estado de carga.\n- `.changeset/fix-refund-reason-selector.md`: el título dice `feat` pero el changeset dice `fix`. Es un nuevo selector, así que debería ser `minor` (o alinear el título). Además, faltan pruebas del nuevo campo.\n\n3) **Veredicto:** Aprobar con cambios.",
+        "input_tokens": 1459,
+        "output_tokens": 407,
+        "ms": 6249
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-17",
+        "number": 17,
+        "url": "https://github.com/LIDR-academy/medusa/pull/17",
+        "title": "fix(dashboard): use display_name from API in regions table countries cell (#17060)",
+        "additions": 6,
+        "deletions": 0
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Bajo. Cambio de una sola línea en un componente de presentación. El riesgo es que `display_name` venga `undefined` o vacío en algunos países y el fallback no cubra bien el caso.\n\n**2) Observaciones:**\n- `countries-cell.tsx`: el diff recortado solo muestra `country.display_name ||`; no puedo verificar qué fallback sigue (¿`country.name`, `iso_2`?). Confirmar que existe un último fallback seguro para no renderizar vacío.\n- `countries-cell.tsx`: revisar que el tipo `HttpTypes.AdminRegionCountry` (o equivalente) declare `display_name`; si no, habría error de TypeScript o un `any` implícito.\n- `.changeset/quiet-regions-country-display-name.md`: correcto como `patch`, pero el texto repite el título; podría describir el síntoma corregido (nombres de países mal mostrados/localizados). Además, no hay test ni captura que evidencie el antes/después.\n\n**3) Veredicto:** Aprobar con cambios (menores): confirmar tipos y fallback final, y mejorar la descripción del changeset. Nota: la PR es material de demo y no debe mergearse.",
+        "input_tokens": 1156,
+        "output_tokens": 427,
+        "ms": 6971
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-16",
+        "number": 16,
+        "url": "https://github.com/LIDR-academy/medusa/pull/16",
+        "title": "fix(i18n): correct Czech plural forms for counts of 5 and above",
+        "additions": 14,
+        "deletions": 9
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Ninguno relevante. Son cambios de texto en traducciones y un changeset; no hay lógica de código afectada.\n\n**2) Observaciones:**\n- `cs.json` (~l. 1952): \"možností dopravy\" y \"možností vrácení\" son correctos para el genitivo plural (5+). Bien.\n- `cs.json` (~l. 3725): `years_other`, `months_other`, `weeks_other`, `days_other` pasan al genitivo plural (\"Roků\", \"Měsíců\", \"Týdnů\", \"Dnů\"). Es correcto para la forma con conteo, pero estas cadenas no llevan `{{count}}`, así que parecen etiquetas sueltas. Conviene verificar que no se usen como encabezados genéricos, donde el nominativo plural (\"Roky\") sería lo adecuado.\n- `cs.json`: el diff está recortado (`hours_other` y siguientes). Confirmar que `minutes_other` y similares reciben el mismo tratamiento. Además, el checo tiene forma `few` (2–4) y `many` (decimales); conviene revisar que `_few` exista y que no haya inconsistencias con `_other`.\n\n**3) Veredicto:** Aprobar con cambios. Verificar el uso de las claves de tiempo sin `{{count}}` y la cobertura completa del resto de unidades. El changeset `patch` es adecuado.",
+        "input_tokens": 1338,
+        "output_tokens": 483,
+        "ms": 6475
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-15",
+        "number": 15,
+        "url": "https://github.com/LIDR-academy/medusa/pull/15",
+        "title": "fix(loyalty-plugin): correct transaction note for store credit debits",
+        "additions": 9,
+        "deletions": 1
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Bajo. El cambio es solo de texto en la nota de la transacción. El riesgo real es que la condición `cl.reference === \"gift-card\"` no cubra todos los casos y la nota sea incorrecta, por ejemplo si hay otros valores de `reference` o si es `undefined`.\n\n**2) Observaciones:**\n- `confirm-cart-credit-lines.ts` (~L202): el fallback \"Store credit usage\" se aplica a cualquier `reference` distinto de `\"gift-card\"`. Conviene verificar qué valores puede tomar `reference` y, si son pocos, usar una comparación explícita o un mapa en lugar de un ternario.\n- `confirm-cart-credit-lines.ts`: el literal `\"gift-card\"` está hardcodeado. Si existe una constante o enum en el plugin, úsala para evitar divergencias.\n- Sin tests: no hay pruebas que verifiquen la nota para ambos casos (gift card y store credit). Añadir una prueba unitaria o de integración evitaría regresiones.\n- `.changeset/store-credit-debit-note.md`: correcto, bump `patch` adecuado.\n\n**3) Veredicto:** Aprobar con cambios (confirmar los valores de `reference` y añadir un test).",
+        "input_tokens": 1206,
+        "output_tokens": 444,
+        "ms": 5770
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-14",
+        "number": 14,
+        "url": "https://github.com/LIDR-academy/medusa/pull/14",
+        "title": "fix(medusa): report a failed migration script instead of exiting 0",
+        "additions": 47,
+        "deletions": 1
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Bajo. Cambia el comportamiento observable: pipelines de CI/despliegue que antes terminaban con código 0 ahora fallarán si un script de migración falla. Es el comportamiento correcto, pero conviene comunicarlo.\n\n**2) Observaciones:**\n- `packages/medusa/src/commands/db/migrate.ts`: el `return false` ocurre tras ejecutar los scripts. Verifica que el llamador (`main`) traduzca `false` en `process.exit(1)` y que no queden recursos abiertos (conexiones, contenedor) sin cerrar en esa ruta temprana.\n- `packages/medusa/src/commands/db/__tests__/db-migrate.spec.ts`: el diff está recortado y no muestra las aserciones del caso \"non-zero\". Confirma que comprueba el valor de retorno/código de salida y no solo que se llamó al fork. Falta un caso con `skipScripts: true` que verifique que no se ejecuta.\n- `.changeset/db-migrate-scripts-exit-code.md`: correcto como `patch`, pero el texto está truncado; añade una nota de que el fallo ahora hace fallar `db:migrate`.\n\n**3) Veredicto:** Aprobar con cambios (menores). El fix es coherente con el manejo existente de `db:migrate:search`.",
+        "input_tokens": 1638,
+        "output_tokens": 468,
+        "ms": 6548
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-13",
+        "number": 13,
+        "url": "https://github.com/LIDR-academy/medusa/pull/13",
+        "title": "fix(utils): aggregate non-Error promise rejections without crashing",
+        "additions": 35,
+        "deletions": 1
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Ninguno relevante. Es un cambio mínimo que reemplaza un acceso que lanzaba `TypeError` (`undefined.message` / `null.message`) por uno seguro.\n\n**2) Observaciones:**\n- `packages/core/utils/src/common/promise-all.ts`: `state.reason?.message ?? String(state.reason)` es correcto para `undefined`, `null`, strings y números. Cuidado: `String(Symbol())` funciona, pero `String(Object.create(null))` lanza `TypeError`. Es un caso extremo, aunque podría cubrirse con un try/catch o `util.inspect`.\n- `packages/core/utils/src/common/promise-all.ts`: si `reason` es un objeto sin `message` (p. ej. `{code: 1}`), el resultado será `\"[object Object]\"`, poco útil. Convendría serializar (`JSON.stringify` con fallback).\n- `packages/core/utils/src/common/__tests__/promise-all.spec.ts`: el diff recortado no muestra las aserciones. Verifica que comprueben el mensaje agregado de cada caso (incluyendo `undefined`/`null`) y añade un caso con objeto plano.\n\n**3) Veredicto:** Aprobar con cambios (menores, no bloqueantes). El changeset `patch` es adecuado.",
+        "input_tokens": 1372,
+        "output_tokens": 468,
+        "ms": 7088
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-12",
+        "number": 12,
+        "url": "https://github.com/LIDR-academy/medusa/pull/12",
+        "title": "feat: Support multiple payment accounts for medusa payments",
+        "additions": 82,
+        "deletions": 12
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Compatibilidad hacia atrás del ID del proveedor. Antes existía un único proveedor Medusa Payments; ahora se registra uno por cuenta (`medusa-payments_{handle}`). Si el ID anterior difiere (p. ej. `pp_medusa-payments_default` vs. el previo), los pagos y las sesiones existentes podrían quedar huérfanos.\n\n**2) Observaciones:**\n- `define-config.ts`: `MEDUSA_CLOUD_PAYMENT_ACCOUNTS?.split(\",\")` no deduplica handles ni valida su formato. Duplicados como `\"eu,eu\"` podrían registrar el proveedor dos veces y fallar. Conviene usar `new Set` y validar el patrón del handle.\n- `providers.ts`: no se ve (diff recortado) qué ocurre cuando `payment_accounts` está vacío o es `undefined`. Debe haber un fallback explícito a `default` para no dejar a los usuarios existentes sin proveedor.\n- `medusa-payments.ts` / `types/index.ts`: el servicio debe saber a qué cuenta pertenece cada instancia. Verifica que la cuenta se propague en las llamadas a la API y que haya tests de esa ruta, ya que solo se ven tests de carga y de config.\n\n**3) Veredicto:** Aprobar con cambios. La idea es sólida y la cobertura de config es buena, pero hay que aclarar la compatibilidad de IDs, el fallback y la deduplicación. Nota: el diff está recortado, así que mi revisión es parcial.",
+        "input_tokens": 2301,
+        "output_tokens": 559,
+        "ms": 7496
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-11",
+        "number": 11,
+        "url": "https://github.com/LIDR-academy/medusa/pull/11",
+        "title": "fix: Allow replacing the transport for search",
+        "additions": 49,
+        "deletions": 2
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Bajo. Se abre un punto de inyección de transporte (`fetch`) que recibe la `api_key` y las peticiones al proxy de Cloud. Si un plugin o configuración no confiable lo reemplaza, podría exfiltrar credenciales o falsear respuestas. Al estar marcado `@ignore`, queda como API interna, lo cual mitiga el riesgo.\n\n**2) Observaciones:**\n- `medusa-search.ts`: se pasa `fetchImpl` como segundo argumento de `MedusaSearchClient`, pero el diff no muestra que el cliente lo soporte. Confirmar que ya acepta esa opción; si no, es un cambio que falta.\n- `providers.ts`: `fetch` se desestructura desde `options.cloud` y sombrea el `fetch` global dentro del loader. Funciona, pero conviene renombrarlo (`fetchImpl`) para evitar confusiones.\n- `medusa-search.spec.ts`: el test solo cubre el camino feliz. Falta verificar que se llama con la URL/cabeceras esperadas (`api_key`, `environment_handle`) y un caso de error (`ok: false`). Además, el mock con `headers.get` mínimo es frágil.\n\n**3) Veredicto:** Aprobar con cambios.",
+        "input_tokens": 2000,
+        "output_tokens": 458,
+        "ms": 6073
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-10",
+        "number": 10,
+        "url": "https://github.com/LIDR-academy/medusa/pull/10",
+        "title": "docs: clarify fork remote setup",
+        "additions": 22,
+        "deletions": 0
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** ninguno relevante. Es solo documentación, sin impacto en código ni en CI.\n\n**2) Observaciones:**\n- **CONTRIBUTING.md**: el bloque de comandos asume que `origin` apunta a `medusajs/medusa`. Si alguien lo ejecuta tras clonar su fork, `git remote rename origin upstream` deja el fork como `upstream` y rompe el flujo. La condición debería ser más visible, por ejemplo con subtítulos separados \"Clonaste medusajs/medusa\" y \"Clonaste tu fork\".\n- **CONTRIBUTING.md**: la rama `develop` está fijada a mano. Conviene confirmar que sigue siendo la rama por defecto, o decir \"la rama por defecto\". Tampoco se indica cómo configurar el push (`git push -u origin <rama>`), que es el objetivo declarado de la guía.\n- **CONTRIBUTING.md**: el diff está recortado y no pude ver el segundo bloque (`git remote add upstream ...`), ni el final de la frase introductoria. Hay que verificar que la URL de `upstream` sea correcta y que los bloques de código estén bien cerrados.\n\n**3) Veredicto:** aprobar con cambios. Aclarar la condición de clonado y el push, y comprobar la parte truncada. La PR está marcada como \"No mergear\" (demo).",
+        "input_tokens": 1137,
+        "output_tokens": 687,
+        "ms": 8701
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-9",
+        "number": 9,
+        "url": "https://github.com/LIDR-academy/medusa/pull/9",
+        "title": "chore: drop Node.js 20 support and require Node.js v22.22.0 or later",
+        "additions": 77,
+        "deletions": 77
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Romper a usuarios en Node 22.15–22.21 (y toda la rama 20) al subir el mínimo de forma abrupta en ~75 paquetes. Es un cambio de compatibilidad (breaking) que debe ir con el bump de versión correcto. Además, el diff está recortado y no puedo verificar los ~50 archivos restantes.\n\n**2) Observaciones:**\n- `.changeset/drop-node-20-support.md`: el mensaje solo cambia el texto. Confirma que el tipo de bump (major/minor) esté acorde con retirar soporte y que todos los paquetes afectados estén listados.\n- `packages/cli/create-medusa-app/src/utils/__tests__/node-version.test.ts`: los casos inválidos incluyen \"22.15.0\" y \"22.21.9\", bien. Añade un caso límite \"22.21.99\" o similar y verifica que \"22.22.0\" exacto pase. Además, `new.test.ts` duplica el valor mockeado a mano; mejor importar la constante.\n- `packages/core/utils/src/common/get-node-version.ts` (y su spec): no veo el diff. Verifica que no tenga otro mínimo hardcodeado distinto de `MIN_SUPPORTED_NODE_VERSION`, y revisa `.nvmrc`, Dockerfiles, CI (`engines`, matrices de GitHub Actions) y docs/README.\n\n**3) Veredicto:** Aprobar con cambios (confirmar consistencia en los archivos no visibles y los puntos de CI/docs).",
+        "input_tokens": 2583,
+        "output_tokens": 543,
+        "ms": 7282
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-8",
+        "number": 8,
+        "url": "https://github.com/LIDR-academy/medusa/pull/8",
+        "title": "docs: add section on login with cloud requirement for mcp",
+        "additions": 26,
+        "deletions": 3
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Ninguno relevante. Es un cambio solo de documentación, sin impacto en código en ejecución.\n\n**2) Observaciones:**\n- `www/apps/cloud/app/deployments/access/page.mdx`: el enlace a `!docs!/learn/configurations/medusa-config#httpauthMethodsPerActor` depende de que el ancla exista tal cual. Conviene verificar la capitalización (`#httpauthmethodsperactor`) y que el build de docs no reporte enlaces rotos. Además, el diff recortado no deja ver si el bloque de código y la lista quedan bien cerrados; confirma que renderiza correctamente.\n- `www/apps/cloud/app/medusa-mcp/page.mdx`: el enlace `/deployments/access#cant-find-the-log-in-with-medusa-cloud-button` requiere que el encabezado generado coincida exactamente con ese slug. Si se cambia el título, el enlace se rompe sin aviso.\n- `www/apps/cloud/generated/edit-dates.mjs`: archivo generado. Las fechas (2026-10-05) son plausibles, pero verifica que las produjo el script y no una edición manual. Evita conflictos de merge al rebasar.\n\n**3) Veredicto:** Aprobar con cambios (solo comprobar enlaces/anclas). Nota: la PR indica que es material de demo y no debe mergearse.",
+        "input_tokens": 1793,
+        "output_tokens": 492,
+        "ms": 7355
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-7",
+        "number": 7,
+        "url": "https://github.com/LIDR-academy/medusa/pull/7",
+        "title": "chore(deps): bump figlet to 1.12.0 to fix GHSA-62ch-8vmq-8xm7",
+        "additions": 3,
+        "deletions": 3
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Bajo. Es una actualización de dependencia transitiva de figlet (1.9.4 → 1.12.0) que corrige un advisory de seguridad. El riesgo es un cambio de comportamiento en una minor, pero figlet suele usarse solo para banners ASCII en CLI.\n\n**2) Observaciones:**\n- `yarn.lock`: el cambio de `version`, `resolution` y `checksum` es coherente entre sí, pero no puedo verificar el checksum desde el diff; conviene que CI lo valide con `yarn install --immutable`.\n- `yarn.lock`: el diff recortado no muestra el bloque de `dependencies`/`engines` de figlet 1.12.0. Hay que confirmar que no añade dependencias nuevas ni sube la versión mínima de Node.\n- `yarn.lock`: no se ve el descriptor (rango) que resuelve a esta versión. Si algún `package.json` fija `figlet@1.9.4` o un rango que no cubre 1.12.0, el lockfile quedaría inconsistente. Comprobar que el rango en el `package.json` correspondiente lo permite.\n\n**3) Veredicto:** Aprobar con cambios (menores): confirmar que CI pasa con instalación inmutable y verificar el advisory GHSA-62ch-8vmq-8xm7 contra 1.12.0. Nota: es material de demo, no mergear.",
+        "input_tokens": 1220,
+        "output_tokens": 493,
+        "ms": 5966
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-6",
+        "number": 6,
+        "url": "https://github.com/LIDR-academy/medusa/pull/6",
+        "title": "fix(loyalty-plugin): make allowed gift card fields matcher more specific",
+        "additions": 17,
+        "deletions": 12
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** No puedo evaluarlo con certeza: el diff está recortado y no muestra el cambio funcional (el matcher de campos permitidos). Lo visible es solo un cambio de estilo (se eliminan los punto y coma en los imports). Riesgo bajo, pero no verificable.\n\n**2) Observaciones:**\n- `packages/plugins/loyalty/src/api/middlewares.ts`: el diff muestra +17/-12, pero lo visible es reformateo (sin `;`). Mezclar formato con un fix funcional ensucia el historial y dificulta la revisión. Conviene separarlo o confirmar que es consecuencia del linter/prettier del repo.\n- `packages/plugins/loyalty/src/api/middlewares.ts`: no puedo ver el nuevo matcher. Hay que verificar que no deje fuera rutas legítimas (p. ej. `/store/gift-cards/:id` vs. listados) ni que `allowFields` se aplique a rutas no deseadas.\n- `.changeset/lucky-chicken-fail.md`: correcto como `patch`. Faltan tests que cubran el matcher más específico.\n\n**3) Veredicto:** Aprobar con cambios. Sin ver el cambio del matcher ni tests, no puedo aprobar sin reservas. Además, la PR indica \"No mergear: es material de demostración\".",
+        "input_tokens": 1522,
+        "output_tokens": 476,
+        "ms": 7083
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-5",
+        "number": 5,
+        "url": "https://github.com/LIDR-academy/medusa/pull/5",
+        "title": "docs: fix links in search overview",
+        "additions": 4,
+        "deletions": 4
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "1) **Riesgo principal:** Bajo. El único riesgo es que las nuevas rutas absolutas (`/search/postgres`, etc.) no resuelvan correctamente según el `basePath` de la app cloud, lo que dejaría los enlaces rotos.\n\n2) **Observaciones:**\n- `www/apps/cloud/app/search/page.mdx`: pasar de rutas relativas a `.mdx` a rutas absolutas es coherente con la convención de enlaces de la documentación. Conviene verificar que, con el `basePath` de la app cloud, el enlace final sea el esperado (por ejemplo, `/cloud/search/postgres`).\n- `www/apps/cloud/app/search/page.mdx`: confirmar que existen las páginas `postgres`, `algolia` y `meilisearch` bajo `app/search/`, y que no hay otros `href` en el archivo con el formato antiguo.\n- `www/apps/cloud/generated/edit-dates.mjs`: archivo generado; el cambio de fecha es esperable. Verificar que lo produjo el script y no una edición manual.\n\n3) **Veredicto:** Aprobar con cambios (solo si la verificación del `basePath` no se ha hecho; si ya se comprobó, aprobar).",
+        "input_tokens": 1203,
+        "output_tokens": 434,
+        "ms": 6318
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-4",
+        "number": 4,
+        "url": "https://github.com/LIDR-academy/medusa/pull/4",
+        "title": "chore(deps): bump the security-updates group across 1 directory with 3 updates",
+        "additions": 71,
+        "deletions": 94
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** El salto de `@opentelemetry/instrumentation-pg` de `^0.52.0` a `^0.73.0` en pre-1.0 (cada minor puede romper). Arrastra versiones nuevas de `@opentelemetry/api-logs`, `instrumentation` y `semantic-conventions` (visible en yarn.lock), con posible incompatibilidad con otros paquetes OTel fijados en el monorepo y cambios en atributos/spans de DB.\n\n**2) Observaciones:**\n- `packages/deps/package.json`: el bump de 21 minors en `instrumentation-pg` es mucho más que un parche de seguridad; revisar el changelog y confirmar compatibilidad con `@opentelemetry/sdk-*` e `instrumentation` ya usados, y con la versión mínima de Node soportada.\n- `.changeset/fuzzy-windows-boil.md`: marca `@medusajs/deps` como `minor`, pero los demás son `patch`. Es coherente con el salto, pero conviene confirmar que es intencional. Además el mensaje es genérico; mejor describir el cambio de OTel.\n- `yarn.lock`: se eliminan entradas `api-logs@0.200.0` y similares; verificar que no queden duplicados de paquetes OTel con versiones mezcladas (`yarn dedupe --check`) y que la telemetría/trazas de pg sigan funcionando.\n\nLos bumps de `compression` (`^1.8.2`) son triviales y de bajo riesgo.\n\n**3) Veredicto:** Aprobar con cambios (validar con CI y pruebas de instrumentación OTel antes de mergear; además, la PR indica \"No mergear\", es solo demo).",
+        "input_tokens": 1686,
+        "output_tokens": 596,
+        "ms": 7898
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-3",
+        "number": 3,
+        "url": "https://github.com/LIDR-academy/medusa/pull/3",
+        "title": "docs: document organization Connections settings page [automated]",
+        "additions": 173,
+        "deletions": 6
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Ninguno relevante. Es solo documentación y archivos generados, sin impacto en código de producción. El riesgo menor es la coherencia entre el contenido manual y los archivos generados.\n\n**2) Observaciones:**\n- `www/apps/cloud/app/medusa-mcp/page.mdx`: el texto pasa de \"early access\" a \"beta\" y limita el acceso a planes Launch, Scale y Enterprise. Conviene confirmar con producto que esa restricción es correcta, porque es una afirmación comercial. Además, el enlace `mailto:` aparece truncado en el diff, así que hay que verificar que sea válido.\n- `www/apps/cloud/generated/*` (`changelog`, `edit-dates`, `sidebar`): son archivos generados que se editan en el mismo PR. Verifica que provengan del script de build y no de ediciones manuales. La imagen del changelog apunta a Cloudinary con una versión fija (`v1791216121`), así que comprueba que exista.\n- `www/apps/cloud/app/organizations/connections/page.mdx`: los anclas `#change-accessible-envi…` y `#revoke-a-connection` deben coincidir con los encabezados reales, porque los enlaces rotos no siempre fallan el build. Como el diff está recortado, no pude confirmarlo.\n\n**3) Veredicto:** Aprobar con cambios (verificar anclas, enlaces y la regeneración de los archivos generados).",
+        "input_tokens": 2524,
+        "output_tokens": 509,
+        "ms": 6544
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-2",
+        "number": 2,
+        "url": "https://github.com/LIDR-academy/medusa/pull/2",
+        "title": "chore(utils): bump `@graphql-tools/merge` and `@graphql-tools/schema` to pull patched `@graphql-tools/utils`",
+        "additions": 44,
+        "deletions": 16
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "1) **Riesgo principal:** El salto de `@graphql-tools/utils` de ^10.11 a ^12.0.3 (major) llega transitivamente vía `merge`. Puede romper compatibilidad si otros paquetes del monorepo aún dependen de utils v10 o si `@graphql-tools/schema` usa una versión distinta, generando duplicados o incompatibilidades de tipos.\n\n2) **Observaciones:**\n- `yarn.lock`: la entrada de `merge` ya no incluye `^9.1.6`; verifica que los otros consumidores (p. ej. `@graphql-tools/*` en otros workspaces) resuelven correctamente y que no quedan dos versiones de `utils` en el árbol (`yarn why @graphql-tools/utils`).\n- `packages/core/utils/package.json`: los rangos suben mucho el mínimo (`^9.0.7`→`^9.2.6`, `^10.0.6`→`^10.1.3`). Confirma que utils v12 mantiene el soporte de Node y el formato ESM/CJS que usa Medusa.\n- `.changeset/bump-graphql-tools-utils.md`: correcto como `patch`, pero si cambia el engine de Node o el comportamiento de merge de schemas, considera `minor` y mencionarlo.\n\n3) **Veredicto:** aprobar con cambios (ejecutar build y tests de módulos que usan GraphQL, y revisar el lockfile completo, ya que el diff está recortado).",
+        "input_tokens": 1723,
+        "output_tokens": 514,
+        "ms": 6791
+      }
+    },
+    {
+      "pr": {
+        "id": "PR-1",
+        "number": 1,
+        "url": "https://github.com/LIDR-academy/medusa/pull/1",
+        "title": "docs: document translation update merging and React version mismatch troubleshooting [automated]",
+        "additions": 73,
+        "deletions": 0
+      },
+      "mode": "direct",
+      "route": "sonnet",
+      "model": "claude-sonnet-5-5",
+      "review": {
+        "model": "claude-sonnet-5-5",
+        "text": "**1) Riesgo principal:** Ninguno relevante. Son cambios solo de documentación (+73/−0), sin impacto en código de producción. El riesgo menor es la exactitud técnica de lo documentado.\n\n**2) Observaciones:**\n\n- **`www/apps/cloud/app/deployments/troubleshooting/page.mdx`**: La sección sobre el desajuste de versiones de React es útil, pero el diff recortado no permite ver los pasos de \"Detect\" ni la solución. Verifica que incluyan comandos concretos (p. ej. `pnpm why react`) y cómo alinear versiones en ambos `package.json`.\n- **`www/apps/resources/app/commerce-modules/translation/concepts/page.mdx`**: El ejemplo de `updateTranslations` con `translations: { title: ... }` deja claro el merge parcial. Conviene aclarar si el merge es superficial o profundo (claves anidadas) y cómo eliminar una clave.\n- **`www/apps/resources/.../concepts/page.mdx`**: Los enlaces a referencias (`batchTranslationsWorkflow`) aparecen truncados; confirma que las rutas existen para evitar enlaces rotos.\n\n**3) Veredicto:** Aprobar con cambios (menores). Nota: la descripción indica \"No mergear: material de demostración\", así que no debe fusionarse en ningún caso.",
+        "input_tokens": 1565,
+        "output_tokens": 479,
+        "ms": 6875
+      }
+    }
+  ]
+}

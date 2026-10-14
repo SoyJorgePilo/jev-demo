@@ -1,0 +1,7 @@
+{
+  "_nota": "USD por millón de tokens. Verificado el 2026-10-06 en https://platform.claude.com/docs/en/about-claude/pricing y https://docs.typesafe.ai/models. Actualiza la víspera.",
+  "claude-sonnet-5-5": { "input_per_m": 2.00, "output_per_m": 10.00 },
+  "claude-sonnet-4-5": { "input_per_m": 3.00, "output_per_m": 15.00 },
+  "claude-haiku-4-5":  { "input_per_m": 1.00, "output_per_m": 5.00 },
+  "jev-1.13.0":        { "input_per_m": 0.042, "output_per_m": 0.00 }
+}
